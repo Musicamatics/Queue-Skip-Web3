@@ -1,15 +1,15 @@
 # Queue Skip Web3
 
 > **⚠️ Proof of Concept / Prototype**  
-> This is a functional prototype demonstrating a multi-tenant queue management system with Web3 integration. While most core features are implemented and working, this project is designed for demonstration and development purposes. Further development, testing, and security hardening would be needed for production deployment.
+> This is a functional prototype demonstrating a multi-venue queue management system with Web3 integration. While most core features are implemented and working, this project is designed for demonstration and development purposes. Further development, testing, and security hardening would be needed for production deployment.
 
-A multi-tenant queue management system with Web3 integration, featuring dynamic QR codes, pass transfers, and blockchain transparency.
+A multi-venue queue management system with Web3 integration, featuring dynamic QR codes, pass transfers, and blockchain transparency.
 
 **Credits:** Built with ❤️ with AWS Kiro and Claude
 
 ## 🚀 Features
 
-- **Multi-tenant Architecture**: Support for multiple venues with configurable features
+- **Multi-venue Architecture**: Support for multiple venues with configurable features
 - **Dynamic QR Codes**: Refresh every 30 seconds with cryptographic security
 - **Hybrid Blockchain Integration**: Database for performance + Solana for transparency
 - **Pass Management**: Allocation, transfer, and redemption with admin controls
@@ -35,7 +35,7 @@ A multi-tenant queue management system with Web3 integration, featuring dynamic 
 - **QR Service**: Dynamic QR generation with 30-second refresh
 - **Blockchain Service**: Solana NFT integration for transparency
 - **Auth Service**: Multi-method authentication (SSO, government ID, Web3 wallet, email)
-- **Venue Service**: Multi-tenant configuration management
+- **Venue Service**: Multi-venue configuration management
 
 ## 🛠️ Tech Stack
 
@@ -66,31 +66,31 @@ A multi-tenant queue management system with Web3 integration, featuring dynamic 
 - **Git**
 
 ### 1. Clone and Install
-\`\`\`bash
+```bash
 git clone <repository-url>
 cd FastQueueKiroCursor
 npm install
-\`\`\`
+```
 
 ### 2. Environment Setup
 Copy the environment file and configure:
-\`\`\`bash
+```bash
 cp packages/backend/env.example packages/backend/.env
-\`\`\`
+```
 
 ### 3. Start with Docker
-\`\`\`bash
+```bash
 docker-compose up -d
-\`\`\`
+```
 
 ### 4. Database Setup
-\`\`\`bash
+```bash
 # Run migrations
 npm run db:migrate --workspace=backend
 
 # Seed test data
 npm run db:seed --workspace=backend
-\`\`\`
+```
 
 ### 5. Access Applications
 - **User Web App**: http://localhost:3000
@@ -103,17 +103,17 @@ npm run db:seed --workspace=backend
 ### Required API Keys
 
 #### Essential (Required for basic functionality)
-\`\`\`bash
+```bash
 # JWT Configuration
 JWT_SECRET="your-super-secret-jwt-key-here"
 
 # Database
 DATABASE_URL="postgresql://username:password@localhost:5432/queue_skip_web3"
 REDIS_URL="redis://localhost:6379"
-\`\`\`
+```
 
 #### Blockchain Integration (Required for Web3 features)
-\`\`\`bash
+```bash
 # Solana Configuration
 SOLANA_RPC_URL="https://api.devnet.solana.com"  # or mainnet-beta
 SOLANA_NETWORK="devnet"  # or mainnet-beta
@@ -122,24 +122,24 @@ WALLET_PRIVATE_KEY="[1,2,3,...]"  # Array format private key
 
 # WalletConnect
 WALLETCONNECT_PROJECT_ID="your-walletconnect-project-id"
-\`\`\`
+```
 
 #### Apple Wallet Integration (Optional - only for .pkpass files)
-\`\`\`bash
+```bash
 APPLE_WALLET_TEAM_ID="your-apple-developer-team-id"
 APPLE_WALLET_PASS_TYPE_ID="pass.com.yourcompany.queueskip"
 APPLE_WALLET_CERTIFICATE_PATH="/path/to/pass-certificate.p12"
 APPLE_WALLET_CERTIFICATE_PASSWORD="certificate-password"
 APPLE_WALLET_WWDR_CERTIFICATE_PATH="/path/to/wwdr-certificate.pem"
-\`\`\`
+```
 
 ### Getting API Keys
 
 #### 1. JWT Secret
 Generate a secure random string:
-\`\`\`bash
+```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-\`\`\`
+```
 
 #### 2. Solana Setup
 - **RPC URL**: Use public endpoints or get from [QuickNode](https://www.quicknode.com/), [Alchemy](https://www.alchemy.com/), or [Helius](https://helius.xyz/)
@@ -184,7 +184,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 - **Admin Permission Enforcement**: Database-level transfer controls
 - **Blockchain Transparency**: Immutable record of critical events
 
-## 🏢 Multi-Tenant Support
+## 🏢 Multi-venue Support
 
 Each venue can independently configure:
 - Authentication methods (SSO, government ID, email, Web3)
@@ -196,17 +196,17 @@ Each venue can independently configure:
 ## 🔧 Development
 
 ### Project Structure
-\`\`\`
+```
 packages/
 ├── backend/          # Node.js API server
 ├── web-app/         # User React app
 ├── admin-dashboard/ # Admin React app
 ├── staff-scanner/   # Staff React app
 └── shared/          # Shared types and utilities
-\`\`\`
+```
 
 ### Development Commands
-\`\`\`bash
+```bash
 # Start all services
 npm run dev
 
@@ -226,7 +226,7 @@ npm run test
 
 # Build for production
 npm run build
-\`\`\`
+```
 
 ## 📊 Monitoring
 
