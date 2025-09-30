@@ -1,0 +1,208 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String?   @unique
+  governmentId String?   @unique
+  web3Address  String?   @unique
+  ssoId        String?   @unique
+  role         String    @default("user") // 'user' | 'admin' | 'staff' | 'super_admin'
+  createdAt    DateTime  @default(now())
+  lastLoginAt  DateTime?
+
+  // Relationships
+  passes               Pass[]
+  venueAssociations    UserVenueAssociation[]
+  donationRequests     DonationRequest[]
+  sentTransfers        PassTransfer[]         @relation("PassTransferSender")
+  receivedTransfers    PassTransfer[]         @relation("PassTransferReceiver")
+
+  @@map("users")
+}
+
+model Venue {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  address   String
+  timezone  String   @default("UTC")
+  config    Json     // VenueConfig as JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  passes               Pass[]
+  passTypes            PassType[]
+  userAssociations     UserVenueAssociation[]
+  passAllocations      PassAllocation[]
+  donationRequests     DonationRequest[]
+  usagePredictions     UsagePrediction[]
+
+  @@map("venues")
+}
+
+model PassType {
+  id             String @id @default(cuid())
+  venueId        String
+  name           String
+  description    String
+  restrictions   Json   // PassRestriction[] as JSON
+  validityPeriod Int    // in hours
+  transferable   Boolean @default(true)
+  
+  // Relationships
+  venue           Venue            @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  passes          Pass[]
+  allocations     PassAllocation[]
+
+  @@map("pass_types")
+}
+
+model Pass {
+  id               String   @id @default(cuid())
+  userId           String
+  venueId          String
+  passTypeId       String
+  status           String   @default("active") // 'active' | 'used' | 'expired' | 'transferred'
+  validFrom        DateTime
+  validUntil       DateTime
+  restrictions     Json     // PassRestriction[] as JSON
+  blockchainTxHash String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relationships
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue        Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  passType     PassType       @relation(fields: [passTypeId], references: [id], onDelete: Cascade)
+  transfers    PassTransfer[]
+  redemptions  PassRedemption[]
+  qrCodes      QRCode[]
+
+  @@map("passes")
+}
+
+model UserVenueAssociation {
+  id        String   @id @default(cuid())
+  userId    String
+  venueId   String
+  userGroup String
+  role      String   @default("user") // 'user' | 'admin' | 'staff' - venue-specific role
+  joinedAt  DateTime @default(now())
+  status    String   @default("active") // 'active' | 'suspended' | 'banned'
+
+  // Relationships
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, venueId])
+  @@map("user_venue_associations")
+}
+
+model PassAllocation {
+  id         String  @id @default(cuid())
+  venueId    String
+  userGroup  String
+  passTypeId String
+  quantity   Int
+  period     String  // 'daily' | 'weekly' | 'monthly' | 'semester'
+  autoRenew  Boolean @default(true)
+  createdAt  DateTime @default(now())
+
+  // Relationships
+  venue    Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  passType PassType @relation(fields: [passTypeId], references: [id], onDelete: Cascade)
+
+  @@map("pass_allocations")
+}
+
+model PassTransfer {
+  id           String   @id @default(cuid())
+  passId       String
+  fromUserId   String
+  toUserId     String
+  status       String   @default("pending") // 'pending' | 'completed' | 'cancelled'
+  blockchainTxHash String?
+  createdAt    DateTime @default(now())
+  completedAt  DateTime?
+
+  // Relationships
+  pass       Pass @relation(fields: [passId], references: [id], onDelete: Cascade)
+  fromUser   User @relation("PassTransferSender", fields: [fromUserId], references: [id])
+  toUser     User @relation("PassTransferReceiver", fields: [toUserId], references: [id])
+
+  @@map("pass_transfers")
+}
+
+model PassRedemption {
+  id               String   @id @default(cuid())
+  passId           String
+  staffId          String
+  venueId          String
+  blockchainTxHash String?
+  redeemedAt       DateTime @default(now())
+
+  // Relationships
+  pass Pass @relation(fields: [passId], references: [id], onDelete: Cascade)
+
+  @@map("pass_redemptions")
+}
+
+model QRCode {
+  id         String   @id @default(cuid())
+  passId     String
+  data       String
+  imageUrl   String?
+  signature  String
+  tokenHash  String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  // Relationships
+  pass Pass @relation(fields: [passId], references: [id], onDelete: Cascade)
+
+  @@map("qr_codes")
+}
+
+model DonationRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  venueId   String
+  reason    String
+  upvotes   Int      @default(0)
+  status    String   @default("open") // 'open' | 'fulfilled' | 'closed'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@map("donation_requests")
+}
+
+model UsagePrediction {
+  id            String   @id @default(cuid())
+  venueId       String
+  date          DateTime
+  timeSlot      String
+  expectedPasses Int
+  confidence    Float
+  createdAt     DateTime @default(now())
+
+  // Relationships
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, date, timeSlot])
+  @@map("usage_predictions")
+}

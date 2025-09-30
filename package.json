@@ -1,0 +1,26 @@
+{
+  "name": "queue-skip-web3",
+  "version": "1.0.0",
+  "description": "Multi-tenant queue management system with Web3 integration",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:web\"",
+    "dev:backend": "npm run dev --workspace=@queue-skip/backend",
+    "dev:web": "npm run dev --workspace=@queue-skip/web-app",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "type-check": "npm run type-check --workspaces"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "concurrently": "^8.2.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": ["queue-management", "web3", "solana", "nft", "blockchain"],
+  "author": "",
+  "license": "MIT"
+}

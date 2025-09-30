@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: queue-skip-postgres
+    environment:
+      POSTGRES_DB: queue_skip_web3
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: queue-skip-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: queue-skip-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/queue_skip_web3
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-super-secret-jwt-key-here-change-in-production
+      - CORS_ORIGIN=http://localhost:3000,http://localhost:3002,http://localhost:3003
+      - SOLANA_RPC_URL=https://api.devnet.solana.com
+      - SOLANA_NETWORK=devnet
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./packages/backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # User Web App
+  web-app:
+    build:
+      context: .
+      dockerfile: packages/web-app/Dockerfile
+    container_name: queue-skip-web-app
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    volumes:
+      - ./packages/web-app:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Admin Dashboard
+  admin-dashboard:
+    build:
+      context: .
+      dockerfile: packages/admin-dashboard/Dockerfile
+    container_name: queue-skip-admin
+    ports:
+      - "3002:3000"
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    volumes:
+      - ./packages/admin-dashboard:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Staff Scanner
+  staff-scanner:
+    build:
+      context: .
+      dockerfile: packages/staff-scanner/Dockerfile
+    container_name: queue-skip-scanner
+    ports:
+      - "3003:3000"
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    volumes:
+      - ./packages/staff-scanner:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
